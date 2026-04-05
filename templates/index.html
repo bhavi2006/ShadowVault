@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShadowVault — Reversible PII Anonymisation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- ── SCAN LINES ── -->
+  <div class="scanlines" aria-hidden="true"></div>
+  <!-- ── HEX GRID ── -->
+  <canvas id="hexCanvas" class="hex-canvas" aria-hidden="true"></canvas>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" fill="none" stroke="var(--gold)" stroke-width="1.5"/>
+            <polygon points="14,6 22,10 22,18 14,22 6,18 6,10" fill="none" stroke="var(--gold)" stroke-width="0.8" opacity="0.5"/>
+            <circle cx="14" cy="14" r="3" fill="var(--gold)"/>
+            <line x1="14" y1="2" x2="14" y2="6" stroke="var(--gold)" stroke-width="1.5"/>
+            <line x1="14" y1="22" x2="14" y2="26" stroke="var(--gold)" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="logo-wordmark">
+          <span class="logo-shadow">Shadow</span><span class="logo-vault">Vault</span>
+          <span class="logo-ver">v2.0</span>
+        </div>
+      </div>
+      <nav class="nav-pills">
+        <a href="#upload" class="nav-pill active">Tokenise</a>
+        <a href="#vault-demo" class="nav-pill">Vault Demo</a>
+        <a href="#how" class="nav-pill">How It Works</a>
+        <a href="#rbac" class="nav-pill">RBAC</a>
+      </nav>
+      <div class="header-badge">
+        <span class="pulse-dot"></span>
+        <span>On-Premise</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-eyebrow">
+        <span class="eye-line"></span>
+        Reversible · AES-256 · Role-Based · Air-Gap Compatible
+        <span class="eye-line"></span>
+      </div>
+      <h1 class="hero-title">
+        PII is never<br/>
+        <em>destroyed</em> —<br/>
+        it's <span class="hero-gold">locked in a vault.</span>
+      </h1>
+      <p class="hero-sub">
+        ShadowVault replaces every personally-identifiable field with an
+        encrypted token. Documents leave your workflow looking complete.
+        Only authorised roles — doctor, auditor, legal — can unlock
+        specific fields. Nothing leaves your server.
+      </p>
+      <div class="hero-compare">
+        <div class="compare-card bad">
+          <div class="compare-label">Traditional Redaction</div>
+          <div class="compare-doc">
+            <span>Patient</span>
+            <span class="blacked">███████████</span>
+            <span>, DOB</span>
+            <span class="blacked">██████</span>
+          </div>
+          <div class="compare-note">⚠ Data destroyed forever</div>
+        </div>
+        <div class="compare-arrow">→</div>
+        <div class="compare-card good">
+          <div class="compare-label">ShadowVault Token</div>
+          <div class="compare-doc">
+            <span>Patient</span>
+            <span class="tokenised">&lt;&lt;SV-A3F9C2E1&gt;&gt;</span>
+            <span>, DOB</span>
+            <span class="tokenised">&lt;&lt;SV-B7D4F810&gt;&gt;</span>
+          </div>
+          <div class="compare-note">✓ Reversible · Role-controlled</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── UPLOAD ── -->
+  <section id="upload" class="upload-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2 class="section-title">Tokenise Documents</h2>
+        <p class="section-sub">Upload PDFs or images. ShadowVault detects PII, encrypts each value into the vault, and substitutes tokens.</p>
+      </div>
+
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-inner">
+          <div class="drop-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <polygon points="24,4 44,14 44,34 24,44 4,34 4,14" fill="none" stroke="var(--gold)" stroke-width="1.5" opacity="0.4"/>
+              <path d="M24 18v12M18 24l6-6 6 6" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="drop-title">Drop files to tokenise</div>
+          <div class="drop-sub">PDF · JPG · PNG · up to 50 MB</div>
+          <label class="btn-choose" for="fileInput">Select Files</label>
+          <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png" hidden />
+        </div>
+      </div>
+
+      <ul class="file-list" id="fileList"></ul>
+
+      <button class="btn-tokenise" id="processBtn" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <polygon points="8,1 15,4.5 15,11.5 8,15 1,11.5 1,4.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        Detect, Encrypt &amp; Tokenise
+      </button>
+    </div>
+  </section>
+
+  <!-- ── RESULTS ── -->
+  <section class="results-section" id="resultsSection" style="display:none">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2 class="section-title">Vault Results</h2>
+      </div>
+      <div id="resultsGrid" class="results-grid"></div>
+      <div id="reportRow" style="display:none;margin-top:24px">
+        <a id="reportLink" class="btn-report" href="#" download>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Download Vault Audit Report
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VAULT DEMO ── -->
+  <section id="vault-demo" class="vault-demo-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2 class="section-title">Role-Based Decryption Demo</h2>
+        <p class="section-sub">After tokenising, enter a Token ID and select a role to see RBAC in action.</p>
+      </div>
+
+      <div class="vault-demo-grid">
+        <div class="vault-input-block">
+          <label class="field-label">Session ID</label>
+          <input type="text" id="demoSession" class="vault-input" placeholder="e.g. a3f9c2e1…" />
+
+          <label class="field-label" style="margin-top:16px">Token ID</label>
+          <input type="text" id="demoToken" class="vault-input" placeholder="e.g. SV-A3F9C2E1" />
+
+          <label class="field-label" style="margin-top:16px">Role</label>
+          <div class="role-chips" id="roleChips">
+            {% for role in roles %}
+            <button class="role-chip" data-role="{{ role }}">{{ role }}</button>
+            {% endfor %}
+          </div>
+
+          <button class="btn-decrypt" id="decryptBtn">
+            Unlock Token
+          </button>
+        </div>
+
+        <div class="vault-output-block">
+          <div class="vault-terminal" id="vaultTerminal">
+            <div class="term-header">
+              <span class="term-dot red"></span>
+              <span class="term-dot amber"></span>
+              <span class="term-dot green"></span>
+              <span class="term-title">vault.decrypt()</span>
+            </div>
+            <div class="term-body" id="termBody">
+              <div class="term-line comment">// ShadowVault — AES-256-GCM</div>
+              <div class="term-line comment">// Awaiting role-authorised request…</div>
+              <div class="term-line">&nbsp;</div>
+              <div class="term-line dim">Select a session, token and role</div>
+              <div class="term-line dim">then press <span class="gold">Unlock Token</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section id="how" class="how-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2 class="section-title">How It Works</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-hex">
+            <span>01</span>
+          </div>
+          <h3>Detect</h3>
+          <p>25+ regex patterns catch SSNs, emails, phones, IDs. spaCy NER adds PERSON / GPE / ORG hits. Runs entirely on-premise.</p>
+        </div>
+        <div class="step-arrow">—</div>
+        <div class="step">
+          <div class="step-hex"><span>02</span></div>
+          <h3>Encrypt</h3>
+          <p>Each PII value is AES-256-GCM encrypted with a unique nonce and stored in a local SQLite vault. The original text is never written to disk.</p>
+        </div>
+        <div class="step-arrow">—</div>
+        <div class="step">
+          <div class="step-hex"><span>03</span></div>
+          <h3>Tokenise</h3>
+          <p>The document gets <code>&lt;&lt;SV-TOKEN&gt;&gt;</code> placeholders. It looks complete — just contains no real PII. Safe to share across teams.</p>
+        </div>
+        <div class="step-arrow">—</div>
+        <div class="step">
+          <div class="step-hex"><span>04</span></div>
+          <h3>Authorise</h3>
+          <p>A doctor clicking <code>&lt;&lt;SV-TOKEN-0041&gt;&gt;</code> decrypts only the fields their role permits. Auditors see different fields. Nothing else leaks.</p>
+        </div>
+      </div>
+
+      <!-- Locker analogy -->
+      <div class="locker-analogy">
+        <div class="locker-title">The Railway Locker Model</div>
+        <div class="locker-steps">
+          <div class="ls">
+            <div class="ls-icon">🧳</div>
+            <div class="ls-text">Real PII put in locker</div>
+          </div>
+          <div class="ls-arr">→</div>
+          <div class="ls">
+            <div class="ls-icon">🔑</div>
+            <div class="ls-text">Token number given out</div>
+          </div>
+          <div class="ls-arr">→</div>
+          <div class="ls">
+            <div class="ls-icon">📄</div>
+            <div class="ls-text">Document shows only token</div>
+          </div>
+          <div class="ls-arr">→</div>
+          <div class="ls">
+            <div class="ls-icon">🔓</div>
+            <div class="ls-text">Authorised role opens locker</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── RBAC TABLE ── -->
+  <section id="rbac" class="rbac-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2 class="section-title">Role-Based Access Matrix</h2>
+        <p class="section-sub">Each role holds its own decryption key. Stealing a doctor's key unlocks only doctor-permitted fields — nothing else.</p>
+      </div>
+      <div class="rbac-table-wrap">
+        <table class="rbac-table" id="rbacTable">
+          <thead>
+            <tr>
+              <th>PII Field</th>
+              <th>Doctor</th>
+              <th>Auditor</th>
+              <th>Legal Team</th>
+              <th>Analyst</th>
+              <th>Admin</th>
+            </tr>
+          </thead>
+          <tbody id="rbacBody">
+            <!-- populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VAULT SECURITY ── -->
+  <section class="security-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2 class="section-title">What Happens if the Vault is Stolen?</h2>
+      </div>
+      <div class="security-cards">
+        <div class="sec-card">
+          <div class="sec-icon">🔐</div>
+          <h3>AES-256-GCM Encryption</h3>
+          <p>Every PII value is encrypted with a 256-bit key. Brute-force time: <strong>2²⁵⁶ combinations</strong> — longer than the age of the universe.</p>
+        </div>
+        <div class="sec-card">
+          <div class="sec-icon">🏢</div>
+          <h3>On-Premise Only</h3>
+          <p>Vault, keys, and documents never leave your server. Air-gap compatible. ShadowVault's own servers see zero data.</p>
+        </div>
+        <div class="sec-card">
+          <div class="sec-icon">🗝</div>
+          <h3>Per-Role Key Isolation</h3>
+          <p>Each role has a separate derived key. Compromising one role's key exposes <em>only</em> that role's permitted fields.</p>
+        </div>
+        <div class="sec-card">
+          <div class="sec-icon">📋</div>
+          <h3>Full Audit Trail</h3>
+          <p>Every token decryption is logged: who, which role, which token, when. Immutable access log in the vault database.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <span class="logo-shadow">Shadow</span><span class="logo-vault">Vault</span>
+        </div>
+        <p>Built with PyMuPDF · Tesseract · spaCy · OpenCV · cryptography · Flask</p>
+        <p class="footer-note">Zero data leaves your server. Not even to ShadowVault's own infrastructure.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── LOADING OVERLAY ── -->
+  <div id="loadingOverlay" class="loading-overlay" style="display:none">
+    <div class="loading-box">
+      <div class="loading-hex">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" class="spin-hex">
+          <polygon points="28,4 52,16 52,40 28,52 4,40 4,16"
+                   fill="none" stroke="var(--gold)" stroke-width="2"/>
+        </svg>
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" class="spin-hex-inner">
+          <polygon points="18,3 33,10.5 33,25.5 18,33 3,25.5 3,10.5"
+                   fill="none" stroke="var(--gold)" stroke-width="1.5" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="loading-title">Encrypting &amp; Tokenising…</div>
+      <div class="loading-sub" id="loadingSub">Extracting text from files</div>
+      <div class="loading-bar"><div class="loading-fill" id="loadingFill"></div></div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
