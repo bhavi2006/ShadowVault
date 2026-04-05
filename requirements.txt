@@ -7,3 +7,4 @@ Pillow>=10.0.0
 opencv-python-headless>=4.8.0
 cryptography>=42.0.0
 werkzeug>=3.0.0
+gunicorn>=21.2.0
